@@ -47,7 +47,7 @@ export async function initializeSDK(clientId: string): Promise<DiscordSDK> {
 
   if (isDiscordActivity()) {
     patchUrlMappings([
-      { prefix: '/assets', target: 'brebiskingactivity-production.up.railway.app/assets' }
+      { prefix: '/assets', target: 'brebiskingactivity-production.up.railway.app' }
     ]);
   }
   
