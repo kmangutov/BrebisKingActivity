@@ -129,6 +129,7 @@ function loadModel(): void {
   // Create a list of possible paths to try
   const pathsToTry = [
     eliseModelUrl,                      // Original import URL
+    `/assetsproxy/elise-DaKAQa_m.glb`,
     `./assets/${filename}`,             // Relative to current directory
     `../assets/${filename}`,            // Up one directory
     `assets/${filename}`,               // From root

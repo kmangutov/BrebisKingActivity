@@ -44,13 +44,13 @@ export async function initializeSDK(clientId: string): Promise<DiscordSDK> {
   await discordSDK.ready();
 
 
-/*
+
 if (isDiscordActivity()) {
     patchUrlMappings([
-      { prefix: '/assets', target: 'brebiskingactivity-production.up.railway.app' }
+      { prefix: '/assetsproxy', target: 'brebiskingactivity-production.up.railway.app/assets' }
     ]);
   }
-  */
+  
   return discordSDK;
 }
 
