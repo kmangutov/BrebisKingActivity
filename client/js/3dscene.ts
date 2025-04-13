@@ -1,6 +1,8 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+// Import the model directly so Vite processes it as an asset
+import eliseModelUrl from '../assets/elise.glb?url';
 
 // Scene elements
 let scene: THREE.Scene;
@@ -122,8 +124,8 @@ function loadModel(): void {
   const loader = new GLTFLoader();
   
   loader.load(
-    // URL to your model
-    '/assets/elise.glb',
+    // URL to your model - use the imported URL
+    eliseModelUrl,
     
     // Called when resource is loaded
     (gltf) => {
