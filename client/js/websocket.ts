@@ -25,6 +25,7 @@ let socket: WebSocket | null = null;
 let connected: boolean = false;
 let userInfo: UserInfo | null = null;
 let reconnectTimer: number | null = null;
+let customServerUrl: string | null = null;
 
 // Event handlers
 let onMessageHandlers: MessageHandler[] = [];
@@ -81,6 +82,17 @@ function clientLog(level: 'info' | 'warn' | 'error', message: string, data?: any
  * @returns WebSocket URL
  */
 const getWebSocketUrl = (): string => {
+  // Use custom server URL if provided
+  if (customServerUrl) {
+    const protocol = customServerUrl.startsWith('https') ? 'wss:' : 'ws:';
+    // Ensure URL has proper format and includes /ws path
+    let serverUrl = customServerUrl.replace(/^https?:\/\//, '');
+    if (!serverUrl.endsWith('/ws')) {
+      serverUrl = serverUrl.endsWith('/') ? `${serverUrl}ws` : `${serverUrl}/ws`;
+    }
+    return `${protocol}//${serverUrl}`;
+  }
+
   // Check if we're in a Discord environment
   const isDiscordHost = window.location.host.includes('discordsays.com');
   
@@ -110,6 +122,7 @@ export function getConnectionInfo(): {
   userInfo: UserInfo | null;
   url: string;
   isDiscordHost: boolean;
+  customServer: string | null;
 } {
   const isDiscordHost = window.location.host.includes('discordsays.com');
   
@@ -117,7 +130,8 @@ export function getConnectionInfo(): {
     connected,
     userInfo,
     url: getWebSocketUrl(),
-    isDiscordHost
+    isDiscordHost,
+    customServer: customServerUrl
   };
 }
 
@@ -127,11 +141,21 @@ export function getConnectionInfo(): {
  * @param activityId - Optional activity ID
  * @param userId - User ID
  * @param username - Username
+ * @param serverUrl - Optional server URL for cross-environment connections
  * @returns - Whether join was successful
  */
-export function joinInstance(instanceId: string, activityId: string | undefined, userId: string, username: string): boolean {
+export function joinInstance(
+  instanceId: string, 
+  activityId: string | undefined, 
+  userId: string, 
+  username: string,
+  serverUrl?: string
+): boolean {
   // Disconnect from any existing connection
   disconnect();
+  
+  // Set custom server URL if provided
+  customServerUrl = serverUrl || null;
   
   // Create new user info
   const newUserInfo: UserInfo = {

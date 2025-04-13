@@ -209,6 +209,11 @@ function displayConnectionInfo(): void {
     }
     
     ui.displaySystemMessage(`WebSocket URL: ${info.url}`);
+    
+    if (info.customServer) {
+      ui.displaySystemMessage(`Custom Server: ${info.customServer}`);
+    }
+    
     ui.displaySystemMessage(`Discord Mode: ${info.isDiscordHost ? 'Yes' : 'No'}`);
     ui.displaySystemMessage('-------------------------');
     ui.displaySystemMessage('Type /join to connect to a Discord instance');
@@ -226,8 +231,11 @@ function showJoinInstanceModal(): void {
     return;
   }
   
-  ui.showJoinModal((instanceId, activityId) => {
+  ui.showJoinModal((instanceId, activityId, serverUrl) => {
     ui.displaySystemMessage(`Connecting to instance: ${instanceId}${activityId ? ` (Activity: ${activityId})` : ''}`);
+    if (serverUrl) {
+      ui.displaySystemMessage(`Using custom server: ${serverUrl}`);
+    }
     
     // Update params for future reconnects
     if (params) {
@@ -247,7 +255,7 @@ function showJoinInstanceModal(): void {
     }
     
     // Connect to the instance
-    websocket.joinInstance(instanceId, activityId, userId!, username!);
+    websocket.joinInstance(instanceId, activityId, userId!, username!, serverUrl);
   });
 }
 

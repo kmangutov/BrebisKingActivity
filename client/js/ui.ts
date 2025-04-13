@@ -113,7 +113,7 @@ export function scrollToBottom(): void {
  * Display a modal dialog to join a remote Discord instance
  * @param onJoin - Callback when join is confirmed
  */
-export function showJoinModal(onJoin: (instanceId: string, activityId?: string) => void): void {
+export function showJoinModal(onJoin: (instanceId: string, activityId?: string, serverUrl?: string) => void): void {
   // Create modal container
   const modalContainer = document.createElement('div');
   modalContainer.className = 'modal-container';
@@ -172,6 +172,27 @@ export function showJoinModal(onJoin: (instanceId: string, activityId?: string) 
   activityIdInput.style.marginTop = '5px';
   activityIdInput.style.boxSizing = 'border-box';
   
+  // Server URL input (optional)
+  const serverUrlLabel = document.createElement('label');
+  serverUrlLabel.textContent = 'Server URL (required for cross-environment):';
+  serverUrlLabel.style.display = 'block';
+  serverUrlLabel.style.marginTop = '10px';
+  
+  const serverUrlInput = document.createElement('input');
+  serverUrlInput.type = 'text';
+  serverUrlInput.placeholder = 'e.g., my-app.railway.app or server-domain.com';
+  serverUrlInput.style.width = '100%';
+  serverUrlInput.style.padding = '8px';
+  serverUrlInput.style.marginTop = '5px';
+  serverUrlInput.style.boxSizing = 'border-box';
+  
+  // Helper text
+  const helperText = document.createElement('div');
+  helperText.textContent = 'Use the server URL when connecting from local to Discord activity';
+  helperText.style.fontSize = '12px';
+  helperText.style.color = '#666';
+  helperText.style.marginTop = '5px';
+  
   // Button container
   const buttonContainer = document.createElement('div');
   buttonContainer.style.display = 'flex';
@@ -202,6 +223,9 @@ export function showJoinModal(onJoin: (instanceId: string, activityId?: string) 
   modal.appendChild(instanceIdInput);
   modal.appendChild(activityIdLabel);
   modal.appendChild(activityIdInput);
+  modal.appendChild(serverUrlLabel);
+  modal.appendChild(serverUrlInput);
+  modal.appendChild(helperText);
   buttonContainer.appendChild(cancelButton);
   buttonContainer.appendChild(joinButton);
   modal.appendChild(buttonContainer);
@@ -221,9 +245,10 @@ export function showJoinModal(onJoin: (instanceId: string, activityId?: string) 
   joinButton.addEventListener('click', () => {
     const instanceId = instanceIdInput.value.trim();
     const activityId = activityIdInput.value.trim() || undefined;
+    const serverUrl = serverUrlInput.value.trim() || undefined;
     
     if (instanceId) {
-      onJoin(instanceId, activityId);
+      onJoin(instanceId, activityId, serverUrl);
       document.body.removeChild(modalContainer);
     } else {
       instanceIdInput.style.border = '1px solid red';
