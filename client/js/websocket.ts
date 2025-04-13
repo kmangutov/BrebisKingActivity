@@ -83,6 +83,10 @@ function clientLog(level: 'info' | 'warn' | 'error', message: string, data?: any
  */
 const getWebSocketUrl = (): string => {
   // Use custom server URL if provided
+  // This is essential for connecting from a local instance to a Discord activity instance
+  // Discord activities run on remote servers (like Railway) while local development runs on localhost
+  // Without this override, a local client would try to connect to its own localhost server
+  // instead of connecting to the remote server where the Discord activity is running
   if (customServerUrl) {
     const protocol = customServerUrl.startsWith('https') ? 'wss:' : 'ws:';
     // Ensure URL has proper format and includes /ws path

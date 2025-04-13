@@ -152,6 +152,7 @@ export function showJoinModal(onJoin: (instanceId: string, activityId?: string, 
   const instanceIdInput = document.createElement('input');
   instanceIdInput.type = 'text';
   instanceIdInput.placeholder = 'Enter instance ID';
+  instanceIdInput.value = 'local-instance'; // Default instance ID
   instanceIdInput.style.width = '100%';
   instanceIdInput.style.padding = '8px';
   instanceIdInput.style.marginTop = '5px';
@@ -181,6 +182,7 @@ export function showJoinModal(onJoin: (instanceId: string, activityId?: string, 
   const serverUrlInput = document.createElement('input');
   serverUrlInput.type = 'text';
   serverUrlInput.placeholder = 'e.g., my-app.railway.app or server-domain.com';
+  serverUrlInput.value = 'brebiskingactivity-production.up.railway.app'; // Default server URL
   serverUrlInput.style.width = '100%';
   serverUrlInput.style.padding = '8px';
   serverUrlInput.style.marginTop = '5px';

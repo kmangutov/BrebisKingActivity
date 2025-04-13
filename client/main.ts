@@ -1,6 +1,7 @@
 import * as discord from './js/discord.ts';
 import * as websocket from './js/websocket.ts';
 import * as ui from './js/ui.ts';
+import * as scene3d from './js/3dscene.ts';
 import { getOrCreateLocalUserId } from './js/utils.ts';
 
 // Define types
@@ -22,6 +23,12 @@ let params: AppParams | null = null;
 async function initApp(): Promise<void> {
   // Initialize UI
   ui.initialize();
+  
+  // Initialize 3D Scene
+  const canvas = document.getElementById('model-canvas') as HTMLCanvasElement;
+  if (canvas) {
+    scene3d.initScene(canvas);
+  }
   
   // Add form submit handler
   ui.onSubmit(handleMessageSubmit);

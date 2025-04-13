@@ -4,7 +4,8 @@ import { resolve } from 'path';
 export default defineConfig({
   build: {
     outDir: 'dist',
-    sourcemap: true
+    sourcemap: true,
+    assetsInlineLimit: 0 // Prevent inlining large files
   },
   resolve: {
     alias: {
@@ -12,5 +13,6 @@ export default defineConfig({
       '@js': resolve(__dirname, './js')
     },
     extensions: ['.js', '.ts']
-  }
+  },
+  publicDir: 'public' // Ensure public directory is copied to output
 }); 
