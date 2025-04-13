@@ -122,44 +122,45 @@ function updateCameraInfo(): void {
  * Load the GLB model
  */
 function loadModel(): void {
-  const loader = new GLTFLoader();
+  // Extract the filename without path
+  const filename = eliseModelUrl.split('/').pop() || 'elise.glb';
+  ui.displaySystemMessage(`Original import URL: ${eliseModelUrl}`);
   
-  // Get base URL for assets - ensures paths work in all environments
-  const baseUrl = window.location.href.split('/').slice(0, -1).join('/');
-  const modelPath = eliseModelUrl.startsWith('/') ? eliseModelUrl : `/${eliseModelUrl}`;
-  const absoluteUrl = new URL(modelPath, baseUrl).href;
+  // Create a list of possible paths to try
+  const pathsToTry = [
+    eliseModelUrl,                      // Original import URL
+    `./assets/${filename}`,             // Relative to current directory
+    `../assets/${filename}`,            // Up one directory
+    `assets/${filename}`,               // From root
+    `/assets/${filename}`,              // Absolute from domain root
+    `./assets/elise.glb`,               // Fixed filename relative
+    `/assets/elise.glb`,                // Fixed filename absolute
+    `${window.location.origin}/assets/${filename}`, // Origin-based URL
+    filename                            // Just the filename
+  ];
   
-  // Log all possible URLs for debugging
-  ui.displaySystemMessage(`Import URL: ${eliseModelUrl}`);
-  ui.displaySystemMessage(`Absolute URL: ${absoluteUrl}`);
-  
-  // Try multiple paths in case one works
-  tryLoadModel(eliseModelUrl, (success) => {
-    if (!success) {
-      ui.displaySystemMessage(`First load attempt failed, trying absolute URL...`);
-      tryLoadModel(absoluteUrl, (success) => {
-        if (!success) {
-          ui.displaySystemMessage(`All loading attempts failed`);
-          // Final fallback - try a hardcoded path that might work in Discord
-          tryLoadModel('/assets/elise.glb', () => {});
-        }
-      });
-    }
-  });
+  // Try loading sequentially
+  tryNextPath(pathsToTry, 0);
 }
 
 /**
- * Try loading model from a specific URL
+ * Try loading from each path until one works
  */
-function tryLoadModel(url: string, callback: (success: boolean) => void): void {
-  ui.displaySystemMessage(`Trying to load from: ${url}`);
+function tryNextPath(paths: string[], index: number): void {
+  if (index >= paths.length) {
+    ui.displaySystemMessage(`All loading attempts failed. Model could not be loaded.`);
+    return;
+  }
+  
+  const path = paths[index];
+  ui.displaySystemMessage(`Attempt ${index+1}/${paths.length}: Loading from "${path}"`);
   
   const loader = new GLTFLoader();
   loader.load(
-    url,
+    path,
     // Success handler
     (gltf) => {
-      ui.displaySystemMessage(`Model loaded successfully from: ${url}`);
+      ui.displaySystemMessage(`SUCCESS: Model loaded from "${path}"`);
       model = gltf.scene;
       scene.add(model);
       
@@ -182,23 +183,18 @@ function tryLoadModel(url: string, callback: (success: boolean) => void): void {
       } else {
         ui.displaySystemMessage(`No animations found in model`);
       }
-      
-      callback(true);
     },
-    
-    // Progress handler
+    // Progress handler (simplified to reduce message spam)
     (xhr) => {
-      const percent = Math.round(xhr.loaded / xhr.total * 100);
-      if (percent % 25 === 0) { // Log at 0%, 25%, 50%, 75%, 100% to avoid spam
-        ui.displaySystemMessage(`Loading progress (${url}): ${percent}%`);
+      if (xhr.loaded / xhr.total === 1) {
+        ui.displaySystemMessage(`Loading completed for "${path}"`);
       }
     },
-    
     // Error handler
     (error: any) => {
-      ui.displaySystemMessage(`ERROR loading model from ${url}: ${error.message || 'Unknown error'}`);
-      console.error(`Error loading model from ${url}:`, error);
-      callback(false);
+      ui.displaySystemMessage(`Failed: "${path}" - ${error.message || 'Unknown error'}`);
+      // Try next path
+      tryNextPath(paths, index + 1);
     }
   );
 }
