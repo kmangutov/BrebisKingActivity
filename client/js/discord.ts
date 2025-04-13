@@ -2,6 +2,7 @@
  * Discord authentication and SDK initialization
  */
 import { DiscordSDK } from '@discord/embedded-app-sdk';
+import { patchUrlMappings } from '@discord/embedded-app-sdk';
 
 // Define types for Discord user
 interface DiscordUser {
@@ -41,6 +42,14 @@ export async function initializeSDK(clientId: string): Promise<DiscordSDK> {
   // Initialize Discord SDK
   discordSDK = new DiscordSDK(clientId);
   await discordSDK.ready();
+
+
+
+  if (isDiscordActivity()) {
+    patchUrlMappings([
+      { prefix: '/assets', target: 'brebiskingactivity-production.up.railway.app/assets' }
+    ]);
+  }
   
   return discordSDK;
 }
