@@ -3,6 +3,7 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 // Import the model directly so Vite processes it as an asset
 import eliseModelUrl from '../assets/elise.glb?url';
+import * as ui from './ui.ts';
 
 // Scene elements
 let scene: THREE.Scene;
@@ -123,12 +124,16 @@ function updateCameraInfo(): void {
 function loadModel(): void {
   const loader = new GLTFLoader();
   
+  // Log the model URL
+  ui.displaySystemMessage(`Loading model from: ${eliseModelUrl}`);
+  
   loader.load(
     // URL to your model - use the imported URL
     eliseModelUrl,
     
     // Called when resource is loaded
     (gltf) => {
+      ui.displaySystemMessage(`Model loaded successfully`);
       model = gltf.scene;
       scene.add(model);
       
@@ -147,16 +152,23 @@ function loadModel(): void {
         // Play the first animation by default
         const action = mixer.clipAction(gltf.animations[0]);
         action.play();
+        ui.displaySystemMessage(`Started animation: ${gltf.animations.length} animations found`);
+      } else {
+        ui.displaySystemMessage(`No animations found in model`);
       }
     },
     
     // Called while loading is progressing
     (xhr) => {
-      console.log((xhr.loaded / xhr.total * 100) + '% loaded');
+      const percent = Math.round(xhr.loaded / xhr.total * 100);
+      if (percent % 25 === 0) { // Log at 0%, 25%, 50%, 75%, 100% to avoid spam
+        ui.displaySystemMessage(`Loading progress: ${percent}%`);
+      }
     },
     
     // Called when loading has errors
-    (error) => {
+    (error: any) => {
+      ui.displaySystemMessage(`ERROR loading model: ${error.message || 'Unknown error'}`);
       console.error('Error loading model:', error);
     }
   );
