@@ -110,6 +110,138 @@ export function scrollToBottom(): void {
 }
 
 /**
+ * Display a modal dialog to join a remote Discord instance
+ * @param onJoin - Callback when join is confirmed
+ */
+export function showJoinModal(onJoin: (instanceId: string, activityId?: string) => void): void {
+  // Create modal container
+  const modalContainer = document.createElement('div');
+  modalContainer.className = 'modal-container';
+  modalContainer.style.position = 'fixed';
+  modalContainer.style.top = '0';
+  modalContainer.style.left = '0';
+  modalContainer.style.width = '100%';
+  modalContainer.style.height = '100%';
+  modalContainer.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
+  modalContainer.style.display = 'flex';
+  modalContainer.style.justifyContent = 'center';
+  modalContainer.style.alignItems = 'center';
+  modalContainer.style.zIndex = '1000';
+  
+  // Create modal content
+  const modal = document.createElement('div');
+  modal.className = 'join-modal';
+  modal.style.backgroundColor = '#ffffff';
+  modal.style.borderRadius = '8px';
+  modal.style.padding = '20px';
+  modal.style.minWidth = '300px';
+  modal.style.maxWidth = '500px';
+  modal.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.2)';
+  
+  // Modal header
+  const header = document.createElement('h3');
+  header.textContent = 'Join Discord Activity Instance';
+  header.style.marginTop = '0';
+  
+  // Instance ID input
+  const instanceIdLabel = document.createElement('label');
+  instanceIdLabel.textContent = 'Instance ID:';
+  instanceIdLabel.style.display = 'block';
+  instanceIdLabel.style.marginTop = '10px';
+  
+  const instanceIdInput = document.createElement('input');
+  instanceIdInput.type = 'text';
+  instanceIdInput.placeholder = 'Enter instance ID';
+  instanceIdInput.style.width = '100%';
+  instanceIdInput.style.padding = '8px';
+  instanceIdInput.style.marginTop = '5px';
+  instanceIdInput.style.boxSizing = 'border-box';
+  instanceIdInput.required = true;
+  
+  // Activity ID input (optional)
+  const activityIdLabel = document.createElement('label');
+  activityIdLabel.textContent = 'Activity ID (optional):';
+  activityIdLabel.style.display = 'block';
+  activityIdLabel.style.marginTop = '10px';
+  
+  const activityIdInput = document.createElement('input');
+  activityIdInput.type = 'text';
+  activityIdInput.placeholder = 'Enter activity ID (optional)';
+  activityIdInput.style.width = '100%';
+  activityIdInput.style.padding = '8px';
+  activityIdInput.style.marginTop = '5px';
+  activityIdInput.style.boxSizing = 'border-box';
+  
+  // Button container
+  const buttonContainer = document.createElement('div');
+  buttonContainer.style.display = 'flex';
+  buttonContainer.style.justifyContent = 'flex-end';
+  buttonContainer.style.gap = '10px';
+  buttonContainer.style.marginTop = '20px';
+  
+  // Cancel button
+  const cancelButton = document.createElement('button');
+  cancelButton.textContent = 'Cancel';
+  cancelButton.style.padding = '8px 16px';
+  cancelButton.style.border = '1px solid #ddd';
+  cancelButton.style.borderRadius = '4px';
+  cancelButton.style.backgroundColor = '#f0f0f0';
+  
+  // Join button
+  const joinButton = document.createElement('button');
+  joinButton.textContent = 'Join';
+  joinButton.style.padding = '8px 16px';
+  joinButton.style.border = '1px solid #4caf50';
+  joinButton.style.borderRadius = '4px';
+  joinButton.style.backgroundColor = '#4caf50';
+  joinButton.style.color = 'white';
+  
+  // Add elements to modal
+  modal.appendChild(header);
+  modal.appendChild(instanceIdLabel);
+  modal.appendChild(instanceIdInput);
+  modal.appendChild(activityIdLabel);
+  modal.appendChild(activityIdInput);
+  buttonContainer.appendChild(cancelButton);
+  buttonContainer.appendChild(joinButton);
+  modal.appendChild(buttonContainer);
+  modalContainer.appendChild(modal);
+  
+  // Add modal to document
+  document.body.appendChild(modalContainer);
+  
+  // Focus the input
+  instanceIdInput.focus();
+  
+  // Event handlers
+  cancelButton.addEventListener('click', () => {
+    document.body.removeChild(modalContainer);
+  });
+  
+  joinButton.addEventListener('click', () => {
+    const instanceId = instanceIdInput.value.trim();
+    const activityId = activityIdInput.value.trim() || undefined;
+    
+    if (instanceId) {
+      onJoin(instanceId, activityId);
+      document.body.removeChild(modalContainer);
+    } else {
+      instanceIdInput.style.border = '1px solid red';
+    }
+  });
+  
+  // Close on escape
+  document.addEventListener('keydown', function closeOnEsc(e) {
+    if (e.key === 'Escape') {
+      document.removeEventListener('keydown', closeOnEsc);
+      if (document.body.contains(modalContainer)) {
+        document.body.removeChild(modalContainer);
+      }
+    }
+  });
+}
+
+/**
  * Add submit handler to message form
  * @param callback - Submit callback function
  */
@@ -126,6 +258,12 @@ export function onSubmit(callback: (message: string) => void): void {
             displaySystemMessage('Running connection diagnostics...');
             // This is handled in main.ts with a special handler
             callback('__DEBUG_TEST_CONNECTION__');
+          } else if (message === '/info') {
+            // Display connection info
+            callback('__INFO_COMMAND__');
+          } else if (message === '/join') {
+            // Show join modal
+            callback('__JOIN_COMMAND__');
           } else {
             callback(message);
           }

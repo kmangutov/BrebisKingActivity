@@ -97,9 +97,59 @@ const getWebSocketUrl = (): string => {
     // Default URL for local development
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
     const host = import.meta.env.VITE_WS_HOST || window.location.host;
-    return `${protocol}//${host}`;
+    return `${protocol}//${host}/ws`;
   }
 };
+
+/**
+ * Get current connection info
+ * @returns Current connection info
+ */
+export function getConnectionInfo(): { 
+  connected: boolean;
+  userInfo: UserInfo | null;
+  url: string;
+  isDiscordHost: boolean;
+} {
+  const isDiscordHost = window.location.host.includes('discordsays.com');
+  
+  return {
+    connected,
+    userInfo,
+    url: getWebSocketUrl(),
+    isDiscordHost
+  };
+}
+
+/**
+ * Join a specific Discord instance
+ * @param instanceId - Instance ID to join
+ * @param activityId - Optional activity ID
+ * @param userId - User ID
+ * @param username - Username
+ * @returns - Whether join was successful
+ */
+export function joinInstance(instanceId: string, activityId: string | undefined, userId: string, username: string): boolean {
+  // Disconnect from any existing connection
+  disconnect();
+  
+  // Create new user info
+  const newUserInfo: UserInfo = {
+    userId,
+    username,
+    instanceId
+  };
+  
+  // Only add activityId if it exists and is not null
+  if (activityId) {
+    newUserInfo.activityId = activityId;
+  }
+  
+  // Connect with new instance info
+  connect(newUserInfo);
+  
+  return true;
+}
 
 /**
  * Test if WebSocket connection options are valid

@@ -155,6 +155,20 @@ function handleMessageSubmit(message: string): void {
     return;
   }
   
+  // Special info command
+  if (message === '__INFO_COMMAND__') {
+    displayConnectionInfo();
+    ui.clearInput();
+    return;
+  }
+  
+  // Special join command
+  if (message === '__JOIN_COMMAND__') {
+    showJoinInstanceModal();
+    ui.clearInput();
+    return;
+  }
+  
   // Send message via WebSocket
   if (websocket.isConnected()) {
     websocket.sendMessage(message);
@@ -176,6 +190,65 @@ function handleMessageSubmit(message: string): void {
       connectWebSocket();
     }
   }
+}
+
+/**
+ * Display current connection information
+ */
+function displayConnectionInfo(): void {
+  const info = websocket.getConnectionInfo();
+  
+  if (info.userInfo) {
+    ui.displaySystemMessage('--- CONNECTION INFO ---');
+    ui.displaySystemMessage(`Connected: ${info.connected ? 'Yes' : 'No'}`);
+    ui.displaySystemMessage(`Your User ID: ${info.userInfo.userId}`);
+    ui.displaySystemMessage(`Instance ID: ${info.userInfo.instanceId || 'Not specified'}`);
+    
+    if (info.userInfo.activityId) {
+      ui.displaySystemMessage(`Activity ID: ${info.userInfo.activityId}`);
+    }
+    
+    ui.displaySystemMessage(`WebSocket URL: ${info.url}`);
+    ui.displaySystemMessage(`Discord Mode: ${info.isDiscordHost ? 'Yes' : 'No'}`);
+    ui.displaySystemMessage('-------------------------');
+    ui.displaySystemMessage('Type /join to connect to a Discord instance');
+  } else {
+    ui.displaySystemMessage('Not connected to any instance');
+  }
+}
+
+/**
+ * Show modal to join a Discord instance
+ */
+function showJoinInstanceModal(): void {
+  if (!userId || !username) {
+    ui.displaySystemMessage('You need to be logged in to join an instance');
+    return;
+  }
+  
+  ui.showJoinModal((instanceId, activityId) => {
+    ui.displaySystemMessage(`Connecting to instance: ${instanceId}${activityId ? ` (Activity: ${activityId})` : ''}`);
+    
+    // Update params for future reconnects
+    if (params) {
+      params = {
+        instanceId,
+        activityId: activityId || null,
+        guildId: params.guildId,
+        channelId: params.channelId
+      };
+    } else {
+      params = {
+        instanceId,
+        activityId: activityId || null,
+        guildId: null,
+        channelId: null
+      };
+    }
+    
+    // Connect to the instance
+    websocket.joinInstance(instanceId, activityId, userId!, username!);
+  });
 }
 
 // Initialize application when DOM is loaded
