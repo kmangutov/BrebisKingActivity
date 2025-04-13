@@ -124,16 +124,42 @@ function updateCameraInfo(): void {
 function loadModel(): void {
   const loader = new GLTFLoader();
   
-  // Log the model URL
-  ui.displaySystemMessage(`Loading model from: ${eliseModelUrl}`);
+  // Get base URL for assets - ensures paths work in all environments
+  const baseUrl = window.location.href.split('/').slice(0, -1).join('/');
+  const modelPath = eliseModelUrl.startsWith('/') ? eliseModelUrl : `/${eliseModelUrl}`;
+  const absoluteUrl = new URL(modelPath, baseUrl).href;
   
+  // Log all possible URLs for debugging
+  ui.displaySystemMessage(`Import URL: ${eliseModelUrl}`);
+  ui.displaySystemMessage(`Absolute URL: ${absoluteUrl}`);
+  
+  // Try multiple paths in case one works
+  tryLoadModel(eliseModelUrl, (success) => {
+    if (!success) {
+      ui.displaySystemMessage(`First load attempt failed, trying absolute URL...`);
+      tryLoadModel(absoluteUrl, (success) => {
+        if (!success) {
+          ui.displaySystemMessage(`All loading attempts failed`);
+          // Final fallback - try a hardcoded path that might work in Discord
+          tryLoadModel('/assets/elise.glb', () => {});
+        }
+      });
+    }
+  });
+}
+
+/**
+ * Try loading model from a specific URL
+ */
+function tryLoadModel(url: string, callback: (success: boolean) => void): void {
+  ui.displaySystemMessage(`Trying to load from: ${url}`);
+  
+  const loader = new GLTFLoader();
   loader.load(
-    // URL to your model - use the imported URL
-    eliseModelUrl,
-    
-    // Called when resource is loaded
+    url,
+    // Success handler
     (gltf) => {
-      ui.displaySystemMessage(`Model loaded successfully`);
+      ui.displaySystemMessage(`Model loaded successfully from: ${url}`);
       model = gltf.scene;
       scene.add(model);
       
@@ -156,20 +182,23 @@ function loadModel(): void {
       } else {
         ui.displaySystemMessage(`No animations found in model`);
       }
+      
+      callback(true);
     },
     
-    // Called while loading is progressing
+    // Progress handler
     (xhr) => {
       const percent = Math.round(xhr.loaded / xhr.total * 100);
       if (percent % 25 === 0) { // Log at 0%, 25%, 50%, 75%, 100% to avoid spam
-        ui.displaySystemMessage(`Loading progress: ${percent}%`);
+        ui.displaySystemMessage(`Loading progress (${url}): ${percent}%`);
       }
     },
     
-    // Called when loading has errors
+    // Error handler
     (error: any) => {
-      ui.displaySystemMessage(`ERROR loading model: ${error.message || 'Unknown error'}`);
-      console.error('Error loading model:', error);
+      ui.displaySystemMessage(`ERROR loading model from ${url}: ${error.message || 'Unknown error'}`);
+      console.error(`Error loading model from ${url}:`, error);
+      callback(false);
     }
   );
 }
